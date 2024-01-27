@@ -68,6 +68,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./my-app-${{ matrix.os }}
-          asset_name: my-app-${{ matrix.os }}
+          asset_path: ./WillYouBeVyValentine-${{ matrix.os }}
+          asset_name: WillYouBeVyValentine-${{ matrix.os }}
           asset_content_type: application/octet-stream
