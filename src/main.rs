@@ -1,6 +1,9 @@
 #![allow(clippy::type_complexity)]
-#![windows_subsystem = "windows"]
-use bevy::{prelude::*, window::EnabledButtons};
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use bevy::{
+    prelude::*,
+    window::{close_on_esc, EnabledButtons},
+};
 use bevy_embedded_assets::EmbeddedAssetPlugin;
 
 fn main() {
@@ -8,12 +11,12 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(0.8, 0.6, 0.5)))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
+                position: WindowPosition::Automatic,
                 title: "<3".into(),
                 resolution: (480., 480.).into(),
                 resizable: false,
                 enabled_buttons: EnabledButtons {
                     maximize: false,
-                    minimize: false,
                     ..default()
                 },
                 ..default()
@@ -23,6 +26,7 @@ fn main() {
         .add_plugins(EmbeddedAssetPlugin::default())
         .add_systems(Startup, setup)
         .add_systems(Update, button_system)
+        .add_systems(Update, close_on_esc)
         .run();
 }
 
@@ -101,9 +105,7 @@ fn setup(mut commands: Commands) {
                         style: Style {
                             width: Val::Px(150.0),
                             height: Val::Px(65.0),
-                            // horizontally center child text
                             justify_content: JustifyContent::Center,
-                            // vertically center child text
                             align_items: AlignItems::Center,
                             ..default()
                         },
@@ -126,9 +128,7 @@ fn setup(mut commands: Commands) {
                     style: Style {
                         width: Val::Px(150.0),
                         height: Val::Px(65.0),
-                        // horizontally center child text
                         justify_content: JustifyContent::Center,
-                        // vertically center child text
                         align_items: AlignItems::Center,
                         ..default()
                     },
@@ -164,7 +164,6 @@ fn button_system(
     mut heading_query: Query<&mut Text, With<Heading>>,
     buttons_query: Query<Entity, With<Buttons>>,
 ) {
-    let mut yes_clicked: bool = false;
     for (interaction, mut color, mut visibility, children, yes) in &mut interaction_query {
         let mut text = text_query.get_mut(children[0]).unwrap();
         match *interaction {
@@ -172,7 +171,7 @@ fn button_system(
                 if !yes {
                     *visibility = Visibility::Hidden
                 } else {
-                    let us = asset_server.load("embedded://us.png");
+                    let us = asset_server.load("embedded://background.png");
 
                     commands.spawn(SpriteBundle {
                         texture: us,
@@ -181,11 +180,11 @@ fn button_system(
 
                     let mut heading = heading_query.single_mut();
                     heading.sections[0].value = "YAYYYYY".into();
-                    yes_clicked = true;
+                    commands.entity(buttons_query.single()).despawn_recursive();
                 }
             }
             Interaction::Hovered => {
-                text.sections[0].value = if yes { "PLEASE".into() } else { "Don't".into() };
+                text.sections[0].value = if yes { "PLEASE".into() } else { ":(".into() };
                 *color = HOVERED_BUTTON.into();
             }
             Interaction::None => {
@@ -193,9 +192,5 @@ fn button_system(
                 *color = NORMAL_BUTTON.into();
             }
         }
-    }
-
-    if yes_clicked {
-        commands.entity(buttons_query.single()).despawn_recursive();
     }
 }
