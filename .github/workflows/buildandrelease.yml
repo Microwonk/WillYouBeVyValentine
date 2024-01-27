@@ -37,8 +37,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: my-app-${{ matrix.os }}
-          path: target/release/my-app
+          name: WillYouBeVyValentine-${{ matrix.os }}
+          path: target/release/WillYouBeVyValentine
 
   release:
     needs: build
